@@ -1,6 +1,31 @@
 # SidekiqScheduler
 
-## Note
+## Note #1
+
+This fork adds to sidekiq-scheduler two options: enabled and startup
+For example, if you want start sidekiq-scheduler only from Unicorn/Rails, but not from Sidekiq you can write something like this in initializer:
+
+```ruby
+# config/initializers/sidekiq_scheduler.rb
+require 'sidekiq/scheduler'
+
+puts "Sidekiq.server? is #{Sidekiq.server?.inspect}"
+puts "defined?(Rails::Server) is #{defined?(Rails::Server).inspect}"
+puts "defined?(Unicorn) is #{defined?(Unicorn).inspect}"
+
+if Rails.env == 'production' && (defined?(Rails::Server) || defined?(Unicorn))
+  Sidekiq.schedule = YAML
+    .load_file(File.expand_path('../../../config/scheduler.yml', __FILE__))
+  Sidekiq::Scheduler.reload_schedule!
+else
+  Sidekiq::Scheduler.enabled = false
+  puts "Sidekiq::Scheduler.enabled is #{Sidekiq::Scheduler.enabled.inspect}"
+end
+```
+
+You can also set Sidekiq::Scheduler.startup to false to prevent reloading schedule on startup of worker, but in this case you can reload it when you need
+
+## Note #2
 
 The master branch and releases from 1.0 are compatible with sidekiq ~> 3, for sidekiq ~> 2 support
 use versions ~> 0.
@@ -45,6 +70,8 @@ Available options are:
 
     :schedule: <the schedule to be run>
     :dynamic: <if true the schedule can be modified in runtime>
+    :startup: <if true the schedule will be loaded on sidekiq startup [true by default]>
+    :enabled: <disables scheduler if true [true by default]>
 
 ## Scheduled Jobs (Recurring Jobs)
 
