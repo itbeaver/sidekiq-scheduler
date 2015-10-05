@@ -14,7 +14,9 @@ module Sidekiq
 
     class << self
       # If set, will try to update the schedule in the loop
+      attr_accessor :enabled
       attr_accessor :dynamic
+      attr_accessor :startup
     end
 
     # the Rufus::Scheduler jobs that are scheduled
